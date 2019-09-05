@@ -9,9 +9,6 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
-mongoose.connect('mongodb+srv://jhonatan:Peugeot2@cluster0-vkdmn.mongodb.net/test?retryWrites=true', {
-    useNewUrlParser: true,
-})
 
 app.use((req,res, next) => {
     req.io = io;

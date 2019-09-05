@@ -1,59 +1,13 @@
-const Post = require('../models/Post');
-const sharp = require('sharp');
-const path = require('path');
-const fs = require('fs');
-const mysql = require('mysql');
-
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '123456789',
-    database: 'nodemysql'
-});
-
-db.connect((err) => {
-    if (err) {
-        throw err;
-
-    }
-    console.log('Mysql Connected');
-
-})
-
+const db = require('../db/connect');
 
 module.exports = {
-    async index(req, res) {
-        const posts = await Post.find().sort('-createdAt');
-
-        return res.json(posts);
-    },
-
-    async store(req, res) {
-        const { title, body } = req.body;
-
-        console.log("title: ", title);
-
-        var post = { title: `${title}`, body: `${body}` };
-        var query = db.query('INSERT INTO posts SET ?', post, function (error, results, fields) {
-            if (error) throw error;
-            // Neat!
-        });
-        console.log(query.sql);
-        return res.json(post);
-    },
-
-
+  
     async buscar(req, res) {
-        const { siape, senha } = req.body;
-
-        console.log("req body: ", req.body);
-
-        var query = db.query('SELECT * FROM usuario WHERE `siape` = ? AND `senha` = ?',[siape, senha], function (error, results, fields) {
+        var query = db.query('SELECT * FROM course', function (error, results, fields) {
             if (error) throw error;
-            // Neat!
             if(results.length > 0){
                 console.log(results);
-                res.json(1);
+                res.json(results);
             }
             else{
                 res.json(0);                
@@ -63,9 +17,11 @@ module.exports = {
     },
 
     async buscarUser(req, res) {
-        const { siape } = req.body;
-        
-        var query = db.query('SELECT * FROM usuario WHERE `siape` = ?',[siape], function (error, results, fields) {
+        const { email, password } = req.body;
+
+        console.log("req body: ", req.body);
+
+        var query = db.query('SELECT * FROM user WHERE email = ? and password = ?',[email, password], function (error, results, fields) {
             if (error) throw error;
             // Neat!
             if(results.length > 0){
@@ -73,21 +29,38 @@ module.exports = {
                 res.json(results)
             }
             else{
+                console.log(results);
                 res.json(0);                
             }
             
         });
     },
 
-    async addItem(req, res) {
+    async buscarSemestres(req, res) {
+        const { id_course } = req.body;
 
-        const { nome, quantidade } = req.body;
-
-        var post = {nome: `${nome}`, quantidade: quantidade};
-
-        var query = db.query('INSERT INTO estoque SET ?', post, function (error, results, fields) {
+        var query = db.query('SELECT semestres FROM course WHERE id_course = ?',[id_course], function (error, results, fields) {
             if (error) throw error;
-            // Neat!
+            if(results.length > 0){
+                console.log(results);
+                res.json(results)
+            }
+            else{
+                console.log(results);
+                res.json(0);                
+            }
+            
+        });
+    },
+
+    async inserirTurma(req, res) {
+
+        const { turma, horario, dia } = req.body;
+
+        var post = {turma: `${turma}`, horario: `${horario}`,  dia: `${dia}`};
+
+        var query = db.query('INSERT INTO turma_horario SET ?', post, function (error, results, fields) {
+            if (error) throw error;
 
             console.log("results: ", results);
             
@@ -142,6 +115,28 @@ module.exports = {
             }
             
         });
-    }
+    }, 
+
+    async buscarTurma(req, res) {
+
+        const { course, semestre } = req.body;
+       
+        var query = db.query("SELECT id_turma, cod_turma, cod_disciplina, name_disciplina FROM turma WHERE course= ? AND semestre= ? limit 7", [course, semestre], function (error, results, fields) {
+            if (error) throw error;
+            // Neat!
+
+            console.log("results: ", results);
+
+            if(results.length > 0){
+                console.log(results);
+                res.json(results)
+            }
+            else{
+                res.json(0);                
+            }
+            
+        });
+    }, 
+
 
 }
